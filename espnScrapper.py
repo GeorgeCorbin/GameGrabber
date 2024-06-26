@@ -1,16 +1,6 @@
 import requests
 import pandas as pd
 
-
-def fetch_scoreboard_data(sport):
-    # Base URL for the ESPN API
-    base_url = "http://site.api.espn.com/apis/site/v2/sports"
-    url = f"{base_url}/{sport}/scoreboard"
-    response = requests.get(url)
-    response.raise_for_status()  # Ensure we notice bad responses
-    return response.json()
-
-
 def parse_scoreboard(json_data):
     games = []
 
@@ -49,8 +39,6 @@ def display_league_options(leagues):
 
 if __name__ == '__main__':
     try:
-        leagues = sport_leagues_data.get('leagues', [])
-        display_league_options(leagues)
         sport = input("Enter the sport (e.g., baseball/mlb, football/nfl, basketball/nba): ").strip().lower()
         json_data = fetch_scoreboard_data(sport)
         games = parse_scoreboard(json_data)
