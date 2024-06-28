@@ -9,19 +9,17 @@ def fetch_all_sports():
     response.raise_for_status()  # Ensure we notice bad responses
     return response.json()
 
-
-def fetch_leagues_for_sport(sport_url):
-    response = requests.get(sport_url)
+def fetch_leagues_for_sport(sports_id):
+    url = f"http://sports.core.api.espn.com/v2/sports/{sports_id}/leagues/"
+    response = requests.get(url)
     response.raise_for_status()  # Ensure we notice bad responses
     return response.json()
-
 
 def fetch_scoreboard_data(sport, league):
     url = f"http://site.api.espn.com/apis/site/v2/sports/{sport}/{league}/scoreboard"
     response = requests.get(url)
     response.raise_for_status()  # Ensure we notice bad responses
     return response.json()
-
 
 def parse_scoreboard(json_data):
     games = []
@@ -59,20 +57,23 @@ def extract_sport_id(sport_url):
     match = re.search(r"sports/([^?]+)", sport_url)
     return match.group(1) if match else None
 
+def extract_league_id(league_url):
+    match = re.search(r"leagues/([^?]+)", league_url)
+    return match.group(1) if match else None
 
 def display_sports_options(sports):
     print("Available sports:")
     for sport in sports:
         sport_id = extract_sport_id(sport['$ref'])
         if sport_id:
-            print(f"Sports: {sport_id}")
-
+            print(f"Sport: {sport_id}")
 
 def display_league_options(leagues):
     print("Available leagues:")
     for league in leagues:
-        print(f"- {league['name']} (ID: {league['id']})")
-
+        league_id = extract_league_id(league['$ref'])
+        if league_id:
+            print(f"League: {league_id}")
 
 if __name__ == '__main__':
     try:
@@ -82,33 +83,49 @@ if __name__ == '__main__':
         if not sports:
             print("No sports data found.")
         else:
+            # for entering sport the user wants data for
             display_sports_options(sports)
             sport_id = input("Enter the sport ID from the list above: ").strip().lower()
 
-            selected_sport = next((s for s in sports if extract_sport_id(s['$ref']).lower() == sport_id), None)
-            if not selected_sport:
-                print("Invalid sport selection. Please select a valid sport ID from the list.")
+            # for entering league the user wants data for based on the sport they selected
+            leagues_data = fetch_leagues_for_sport(sport_id)
+            leagues = leagues_data.get("items", 0)
+            display_league_options(leagues)
+            league_id = input("Enter the league ID from the list above: ").strip().lower()
+
+            json_data = fetch_scoreboard_data(sport_id, league_id)
+            games = parse_scoreboard(json_data)
+            if games:
+                filename = f"{sport_id}_{league_id}_scoreboard.csv"
+                save_scoreboard_to_csv(games, filename)
             else:
-                leagues_data = fetch_leagues_for_sport(selected_sport['$ref'])
-                leagues = leagues_data.get('leagues', [])
+                print("No scoreboard data found.")
 
-                if not leagues:
-                    print(f"No leagues found for the sport: {selected_sport['name']}")
-                else:
-                    display_league_options(leagues)
-                    league_id = input("Enter the league ID from the list above: ").strip().lower()
-
-                    selected_league = next((l for l in leagues if l['id'].lower() == league_id), None)
-                    if not selected_league:
-                        print("Invalid league selection. Please select a valid league ID from the list.")
-                    else:
-                        json_data = fetch_scoreboard_data(sport_id, league_id)
-                        games = parse_scoreboard(json_data)
-                        if games:
-                            filename = f"{sport_id}_{league_id}_scoreboard.csv"
-                            save_scoreboard_to_csv(games, filename)
-                        else:
-                            print("No scoreboard data found.")
+            # selected_sport = next((s for s in sports if extract_sport_id(s['$ref']).lower() == sport_id), None)
+            # print (selected_sport)
+            # if not selected_sport:
+            #     print("Invalid sport selection. Please select a valid sport ID from the list.")
+            # else:
+            #     leagues_data = fetch_leagues_for_sport(selected_sport['$ref'])
+            #     leagues = leagues_data.get('leagues', [])
+            #
+            #     if not leagues:
+            #         print(f"No leagues found for the sport: {selected_sport['name']}")
+            #     else:
+            #         display_league_options(leagues)
+            #         league_id = input("Enter the league ID from the list above: ").strip().lower()
+            #
+            #         selected_league = next((l for l in leagues if l['id'].lower() == league_id), None)
+            #         if not selected_league:
+            #             print("Invalid league selection. Please select a valid league ID from the list.")
+            #         else:
+            #             json_data = fetch_scoreboard_data(sport_id, league_id)
+            #             games = parse_scoreboard(json_data)
+            #             if games:
+            #                 filename = f"{sport_id}_{league_id}_scoreboard.csv"
+            #                 save_scoreboard_to_csv(games, filename)
+            #             else:
+            #                 print("No scoreboard data found.")
     except requests.RequestException as e:
         print(f"Failed to fetch data from ESPN API. Error: {e}")
     except Exception as e:
