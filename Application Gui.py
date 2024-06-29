@@ -40,11 +40,11 @@ def toggle_dark_mode():
     button_active_bg = colors[mode]['button_active_bg']
 
     configure_widget(root, bg=root_bg)
-    configure_widgets([label, input_label, toggle_label], bg=root_bg, fg=fg_color)
-    configure_widgets([entry, input_entry], bg=entry_bg, fg=entry_fg)
-    configure_widgets([button, button1, button2, input_submit], bg=button_bg, fg=button_fg,
-                      activebackground=button_active_bg)
+    configure_widgets([input_label, toggle_label], bg=root_bg, fg=fg_color)
+    configure_widgets([input_entry], bg=entry_bg, fg=entry_fg)
+    configure_widgets([button1, button2, input_submit], bg=button_bg, fg=button_fg, activebackground=button_active_bg)
     configure_widgets([toggle_frame, console_output_frame], bg=root_bg)
+    input_frame.config(bg=root_bg)
     toggle_button.itemconfig(toggle_button_text, fill=fg_color)
     toggle_button.itemconfig(toggle_button_circle, fill=fg_color)
 
@@ -52,14 +52,6 @@ def toggle_dark_mode():
         toggle_button.coords(toggle_button_circle, 40, 5, 70, 35)
     else:
         toggle_button.coords(toggle_button_circle, 5, 5, 35, 35)
-
-
-def on_button_click():
-    entered_text = entry.get()
-    if entered_text:
-        label.config(text=f"Hello, {entered_text}!")
-    else:
-        messagebox.showwarning("Input Error", "Please enter some text")
 
 
 def enqueue_output(out, queue):
@@ -131,9 +123,6 @@ root.title("Game Snatcher")
 center_window(root, 800, 600)
 
 # Create widgets
-label = tk.Label(root, text="Enter your name:", font=("Arial", 14))
-entry = tk.Entry(root, font=("Arial", 14))
-button = tk.Button(root, text="Submit", font=("Arial", 14), command=on_button_click)
 button1 = tk.Button(root, text="ESPN Game Grabber", font=("Arial", 14), command=run_ESPN)
 button2 = tk.Button(root, text="Run Script 2", font=("Arial", 14), command=run_script2)
 
@@ -157,9 +146,6 @@ toggle_button_text = toggle_button.create_text(37.5, 20, text="", fill="black", 
 toggle_button_circle = toggle_button.create_oval(5, 5, 35, 35, fill="black", outline="black")
 
 # Pack and place widgets
-label.pack(pady=10)
-entry.pack(pady=10)
-button.pack(pady=10)
 button1.pack(pady=10)
 button2.pack(pady=10)
 
@@ -188,7 +174,7 @@ def on_button_release(event):
 
 
 # Bind button press and release events for click effect
-for btn in [button, button1, button2, input_submit]:
+for btn in [button1, button2, input_submit]:
     btn.bind("<ButtonPress-1>", on_button_press)
     btn.bind("<ButtonRelease-1>", on_button_release)
 
