@@ -1,8 +1,9 @@
+import os
+import sys
 import requests
 import pandas as pd
 import re
-# from datetime import datetime
-
+from datetime import datetime
 
 def fetch_all_sports():
     url = "https://sports.core.api.espn.com/v2/sports?limit=1000"
@@ -50,8 +51,10 @@ def parse_scoreboard(json_data):
 
 def save_scoreboard_to_csv(games, filename):
     df = pd.DataFrame(games)
-    df.to_csv(filename, index=False)
-    print(f"Scoreboard data saved to {filename}")
+    current_directory = os.path.dirname(sys.executable)
+    file_path = os.path.join(current_directory, filename)
+    df.to_csv(file_path, index=False)
+    print(f"\nScoreboard data saved to {filename}")
 
 
 def extract_sport_id(sport_url):
@@ -105,7 +108,9 @@ def parse_events_data(events):
 
 def export_to_csv(parsed_data, filename):
     df = pd.DataFrame(parsed_data)
-    df.to_csv(filename, index=False)
+    current_directory = os.path.dirname(sys.executable)
+    file_path = os.path.join(current_directory, filename)
+    df.to_csv(file_path, index=False)
     print(f"Extra Data exported to {filename}")
 
 if __name__ == '__main__':
@@ -127,6 +132,10 @@ if __name__ == '__main__':
 
             start_date = input("Enter the start date in the format YYYY-MM-DD: ").strip().replace("-", "")
             end_date = input("Enter the end date in the format YYYY-MM-DD: ").strip().replace("-", "")
+            if start_date == "" or end_date == "":
+                start_date = datetime.now().strftime("%Y-%m-%d").replace("-", "")
+                end_date = datetime.now().strftime("%Y-%m-%d").replace("-", "")
+
             json_data = fetch_scoreboard_data(sport_id, league_id, start_date, end_date)
             games = parse_scoreboard(json_data)
             if games:
@@ -139,6 +148,8 @@ if __name__ == '__main__':
             events = data.get('events', [])
             parsed_data = parse_events_data(events)
             export_to_csv(parsed_data, f'Extra_{sport_id}_{league_id}_events_data.csv')
+
+            # exit(f'\nYour files have been completed.')
 
     except requests.RequestException as e:
         print(f"Failed to fetch data from ESPN API. Error: {e}")
