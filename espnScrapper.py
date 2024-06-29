@@ -1,7 +1,7 @@
 import requests
 import pandas as pd
 import re
-from datetime import datetime
+# from datetime import datetime
 
 
 def fetch_all_sports():
@@ -67,14 +67,14 @@ def display_sports_options(sports):
     for sport in sports:
         sport_id = extract_sport_id(sport['$ref'])
         if sport_id:
-            print(f"Sport: {sport_id}")
+            print(f"{sport_id}")
 
 def display_league_options(leagues):
     print("Available leagues:")
     for league in leagues:
         league_id = extract_league_id(league['$ref'])
         if league_id:
-            print(f"League: {league_id}")
+            print(f"{league_id}")
 
 
 def flatten_json(y):
