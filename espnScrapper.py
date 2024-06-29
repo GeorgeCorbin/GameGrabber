@@ -51,6 +51,7 @@ def parse_scoreboard(json_data):
 
 def save_scoreboard_to_csv(games, filename):
     df = pd.DataFrame(games)
+    downloads_dir = os.path.join(os.path.expanduser("~"), "Downloads")
     current_directory = os.path.dirname(sys.executable)
     file_path = os.path.join(current_directory, filename)
     df.to_csv(file_path, index=False)
@@ -108,6 +109,7 @@ def parse_events_data(events):
 
 def export_to_csv(parsed_data, filename):
     df = pd.DataFrame(parsed_data)
+    downloads_dir = os.path.join(os.path.expanduser("~"), "Downloads")
     current_directory = os.path.dirname(sys.executable)
     file_path = os.path.join(current_directory, filename)
     df.to_csv(file_path, index=False)
@@ -122,16 +124,24 @@ if __name__ == '__main__':
             print("No sports data found.")
         else:
             # for entering sport the user wants data for
-            sport_id = input("Enter the sport ID from the list above: ").strip().lower()
+            print("Enter the sport ID from the list above: ")
+            sys.stdout.flush()
+            sport_id = input().strip().lower()
 
             # for entering league the user wants data for based on the sport they selected
             leagues_data = fetch_leagues_for_sport(sport_id)
             leagues = leagues_data.get("items", 0)
             display_league_options(leagues)
-            league_id = input("Enter the league ID from the list above: ").strip().lower()
+            print("Enter the league ID from the list above: ")
+            sys.stdout.flush()
+            league_id = input().strip().lower()
 
-            start_date = input("Enter the start date in the format YYYY-MM-DD: ").strip().replace("-", "")
-            end_date = input("Enter the end date in the format YYYY-MM-DD: ").strip().replace("-", "")
+            print("Enter the start date in the format YYYY-MM-DD: ")
+            sys.stdout.flush()
+            start_date = input().strip().replace("-", "")
+            print("Enter the end date in the format YYYY-MM-DD: ")
+            sys.stdout.flush()
+            end_date = input().strip().replace("-", "")
             if start_date == "" or end_date == "":
                 start_date = datetime.now().strftime("%Y-%m-%d").replace("-", "")
                 end_date = datetime.now().strftime("%Y-%m-%d").replace("-", "")
