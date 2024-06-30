@@ -23,28 +23,46 @@ def fetch_scoreboard_data(sport, league, start_date, end_date):
     response.raise_for_status()  # Ensure we notice bad responses
     return response.json()
 
-def parse_scoreboard(json_data):
+def parse_scoreboard(json_data, sport, league):
     games = []
 
     for event in json_data.get('events', []):
         game_data = {}
 
-        # Extract team names and scores
-        competitions = event.get('competitions', [])
-        if competitions:
-            competitors = competitions[0].get('competitors', [])
-            if competitors:
-                game_data['Away Team'] = competitors[0].get('team', {}).get('displayName', 'N/A')
-                game_data['Away Score'] = competitors[0].get('score', 'N/A')
-                game_data['Home Team'] = competitors[1].get('team', {}).get('displayName', 'N/A')
-                game_data['Home Score'] = competitors[1].get('score', 'N/A')
+        # Apply specific parsing for mma/ufc
+        if sport == "mma" and league == "ufc":
+            # Extracting event name and date
+            game_data['Event'] = event.get('name', 'N/A')
+            game_data['Date'] = event.get('date', 'N/A')
 
-        # Extract game status
-        status = event.get('status', {}).get('type', {}).get('description', 'N/A')
-        game_data['Status'] = status
+            # Extracting competitions
+            competitions = event.get('competitions', [])
+            for comp_index, competition in enumerate(competitions):
+                comp_key = f"Competition_{comp_index+1}"
+                competitors = competition.get('competitors', [])
+                for comp_index, competitor in enumerate(competitors):
+                    comp_prefix = f"{comp_key}_Competitor_{comp_index+1}"
+                    game_data[f"{comp_prefix}_Athlete_FullName"] = competitor.get('athlete', {}).get('displayName', 'N/A')
+                    game_data[f"{comp_prefix}_Winner"] = competitor.get('winner', 'N/A')
+        else:
+            # Original parsing logic for other sports
+            competitions = event.get('competitions', [])
+            if competitions:
+                competitors = competitions[0].get('competitors', [])
+                if competitors:
+                    game_data['Away Team'] = competitors[0].get('team', {}).get('displayName', 'N/A')
+                    game_data['Away Score'] = competitors[0].get('score', 'N/A')
+                    game_data['Home Team'] = competitors[1].get('team', {}).get('displayName', 'N/A')
+                    game_data['Home Score'] = competitors[1].get('score', 'N/A')
 
-        if game_data:
-            games.append(game_data)
+            # Extract game status
+            status = event.get('status', {}).get('type', {}).get('description', 'N/A')
+            game_data['Status'] = status
+
+        games.append(game_data)
+
+    return games
+
 
     return games
 
@@ -53,7 +71,7 @@ def save_scoreboard_to_csv(games, filename):
     df = pd.DataFrame(games)
     downloads_dir = os.path.join(os.path.expanduser("~"), "Downloads")
     current_directory = os.path.dirname(sys.executable)
-    file_path = os.path.join(current_directory, filename)
+    file_path = os.path.join(downloads_dir, filename)
     df.to_csv(file_path, index=False)
     print(f"\nScoreboard data saved to {filename}")
 
@@ -111,7 +129,7 @@ def export_to_csv(parsed_data, filename):
     df = pd.DataFrame(parsed_data)
     downloads_dir = os.path.join(os.path.expanduser("~"), "Downloads")
     current_directory = os.path.dirname(sys.executable)
-    file_path = os.path.join(current_directory, filename)
+    file_path = os.path.join(downloads_dir, filename)
     df.to_csv(file_path, index=False)
     print(f"Extra Data exported to {filename}")
 
@@ -147,7 +165,7 @@ if __name__ == '__main__':
                 end_date = datetime.now().strftime("%Y-%m-%d").replace("-", "")
 
             json_data = fetch_scoreboard_data(sport_id, league_id, start_date, end_date)
-            games = parse_scoreboard(json_data)
+            games = parse_scoreboard(json_data, sport_id, league_id)
             if games:
                 filename = f"{sport_id}_{league_id}_scoreboard.csv"
                 save_scoreboard_to_csv(games, filename)

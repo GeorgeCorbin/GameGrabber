@@ -1,5 +1,6 @@
+import os
+import sys
 import tkinter as tk
-from tkinter import messagebox
 import subprocess
 from threading import Thread
 from queue import Queue, Empty
@@ -87,7 +88,15 @@ def run_script(script_name, input_text=None):
 
     console_output.see(tk.END)
 
-    cmd = ["python", script_name]
+    # Determine the path to the script
+    if getattr(sys, 'frozen', False):
+        # If running as a packaged executable
+        script_path = os.path.join(sys._MEIPASS, script_name)
+    else:
+        # If running in a normal Python environment
+        script_path = os.path.join(os.path.dirname(__file__), script_name)
+
+    cmd = ["python3", script_path]
     if input_text:
         cmd.append(input_text)
 
@@ -102,7 +111,7 @@ def run_ESPN():
 
 
 def run_script2():
-    run_script("script2.py")
+    run_script("GeneralScrapper.py")
 
 
 def on_input_submit():
@@ -124,7 +133,7 @@ center_window(root, 800, 600)
 
 # Create widgets
 button1 = tk.Button(root, text="ESPN Game Grabber", font=("Arial", 14), command=run_ESPN)
-button2 = tk.Button(root, text="Run Script 2", font=("Arial", 14), command=run_script2)
+button2 = tk.Button(root, text="General Scrapper", font=("Arial", 14), command=run_script2)
 
 input_frame = tk.Frame(root, bd=1, relief="solid")
 input_label = tk.Label(input_frame, text="Script Input:", font=("Arial", 12))
@@ -147,7 +156,7 @@ toggle_button_circle = toggle_button.create_oval(5, 5, 35, 35, fill="black", out
 
 # Pack and place widgets
 button1.pack(pady=10)
-button2.pack(pady=10)
+# button2.pack(pady=10)
 
 console_output_frame.pack(pady=10, padx=10, fill=tk.BOTH, expand=True)
 console_output.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
