@@ -5,8 +5,15 @@ import pandas as pd
 import re
 from datetime import datetime
 
+# Define your proxy settings
+# proxies = {
+#     'http': 'http://proxy.server:3128',
+#     'https': 'http://proxy.server:3128'
+# }
+
 def fetch_all_sports():
     url = "https://sports.core.api.espn.com/v2/sports?limit=1000"
+    # response = requests.get(url, proxies=proxies)
     response = requests.get(url)
     response.raise_for_status()  # Ensure we notice bad responses
     return response.json()

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Grabber</title>
+    <style>
+        #output-box {
+            width: 100%;
+            height: 300px;
+            border: 1px solid #000;
+            padding: 10px;
+            overflow-y: scroll;
+            background-color: #f0f0f0;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Game Grabber</h1>
+
+    <!-- Buttons to start scripts -->
+    <form method="POST" action="{{ url_for('start_script', script_name='GeneralScrapper.py') }}">
+        <button type="submit">Run GeneralScrapper</button>
+    </form>
+    <form method="POST" action="{{ url_for('start_script', script_name='espnScrapper.py') }}">
+        <button type="submit">Run espnScrapper</button>
+    </form>
+
+    <!-- Input form to submit input to the running script -->
+    <form method="POST" action="{{ url_for('submit_input') }}">
+        <label for="input">Input:</label>
+        <input type="text" id="input" name="input" required>
+        <br>
+        <button type="submit">Submit Input</button>
+    </form>
+
+    <!-- Displaying the console output -->
+    <h2>Output:</h2>
+    <div id="output-box">
+        {% if output %}
+            {% for line in output %}
+                {% if "ERROR:" in line %}
+                    <p class="error">{{ line }}</p>
+                {% else %}
+                    <p>{{ line }}</p>
+                {% endif %}
+            {% endfor %}
+        {% else %}
+            <p>No output yet.</p>
+        {% endif %}
+    </div>
+</body>
+</html>
