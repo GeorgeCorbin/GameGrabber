@@ -16,6 +16,9 @@
         .error {
             color: red;
         }
+        .button-container {
+            margin-bottom: 20px;
+        }
     </style>
     <script>
         function updateOutput(output) {
@@ -39,19 +42,57 @@
                 },
                 body: JSON.stringify(data),
             })
-            .then(() => setTimeout(callback, delay))  // Wait before calling the callback
+            .then(response => response.json())
+            .then(data => {
+                if (callback) setTimeout(() => callback(data), delay);  // Wait before calling the callback
+            })
             .catch(error => console.error('Error:', error));
         }
 
-        function handleFormSubmit(event, url) {
+        function handleFormSubmit(event) {
             event.preventDefault();
-            sendPostRequest(url, {}, fetchOutput, 10000);  // 10 seconds delay for running scripts
+            const sport_id = document.getElementById('sports').value;
+            const league_id = document.getElementById('leagues').value;
+            const start_date = document.getElementById('start_date').value;
+            const end_date = document.getElementById('end_date').value;
+            sendPostRequest('/start_scraper', { sport_id, league_id, start_date, end_date }, handleScraperResult, 15000);  // 15 seconds delay for processing
         }
 
-        function handleInputSubmit(event) {
-            event.preventDefault();
-            const input = document.getElementById('input').value;
-            sendPostRequest('/submit_input', { input: input }, fetchOutput, 1000);  // 1 seconds delay for submit input
+        function handleScraperResult(data) {
+            fetchOutput();
+            if (data.success) {
+                alert('CSV export complete. Your files will be downloaded shortly.');
+                downloadFile(data.file_path);
+                downloadFile(data.extra_file_path);
+            } else {
+                alert('Failed to export CSV.');
+            }
+        }
+
+        function downloadFile(filename) {
+            const link = document.createElement('a');
+            link.href = `/download/${filename}`;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function fetchLeagues(sport_id) {
+            console.log(`Fetching leagues for sport_id: ${sport_id}`);
+            sendPostRequest('/get_leagues', { sport_id }, updateLeaguesDropdown, 1000);  // 1 second delay for processing
+        }
+
+        function updateLeaguesDropdown(leagues) {
+            console.log(`Leagues received: ${JSON.stringify(leagues)}`);
+            const leaguesDropdown = document.getElementById('leagues');
+            leaguesDropdown.innerHTML = '';  // Clear existing options
+            leagues.forEach(league => {
+                const option = document.createElement('option');
+                option.value = league;
+                option.textContent = league;
+                leaguesDropdown.appendChild(option);
+            });
         }
 
         function fetchOutput() {
@@ -67,18 +108,27 @@
 <body>
     <h1>Game Grabber</h1>
 
-    <!-- Buttons to start scripts -->
-    <form method="POST" onsubmit="handleFormSubmit(event, '{{ url_for('start_script', script_name='GeneralScrapper.py') }}')">
-        <button type="submit">Run GeneralScrapper</button>
-    </form>
-    <form method="POST" onsubmit="handleFormSubmit(event, '{{ url_for('start_script', script_name='espnScrapper.py') }}')">
-        <button type="submit">Run espnScrapper</button>
-    </form>
+    <!-- Dropdowns to select sport and league -->
+    <div>
+        <label for="sports">Select Sport:</label>
+        <select id="sports" name="sports" onchange="fetchLeagues(this.value)">
+            {% for sport in sports %}
+            <option value="{{ sport }}">{{ sport }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div>
+        <label for="leagues">Select League:</label>
+        <select id="leagues" name="leagues"></select>
+    </div>
 
-    <!-- Input form to submit input to the running script -->
-    <form method="POST" onsubmit="handleInputSubmit(event)">
-        <label for="input">Input:</label>
-        <input type="text" id="input" name="input" required>
+    <!-- Input form to submit input to the script -->
+    <form method="POST" onsubmit="handleFormSubmit(event)">
+        <label for="start_date">Start Date:</label>
+        <input type="date" id="start_date" name="start_date" required>
+        <br>
+        <label for="end_date">End Date:</label>
+        <input type="date" id="end_date" name="end_date" required>
         <br>
         <button type="submit">Submit Input</button>
     </form>
