@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, jsonify
 import subprocess
 from threading import Thread
 from queue import Queue, Empty
@@ -67,8 +67,7 @@ stderr_queue = Queue()
 
 @app.route('/')
 def index():
-    output = get_output()
-    return render_template('index.html', output=output)
+    return render_template('index.html')
 
 @app.route('/start/<script_name>', methods=['POST'])
 def start_script(script_name):
@@ -76,12 +75,12 @@ def start_script(script_name):
     if current_process is not None and current_process.poll() is None:
         current_process.terminate()
     run_script(script_name)
-    return redirect(url_for('index'))
+    return '', 204
 
 @app.route('/submit_input', methods=['POST'])
 def submit_input():
     global current_process
-    input_value = request.form.get('input')
+    input_value = request.json.get('input')
     if current_process and current_process.poll() is None:
         try:
             current_process.stdin.write(input_value + "\n")
@@ -91,8 +90,11 @@ def submit_input():
                 log_file.write("BrokenPipeError: The subprocess has terminated and cannot receive input.\n")
                 log_file.flush()
             print("BrokenPipeError: The subprocess has terminated and cannot receive input.")
-    output = get_output()
-    return render_template('index.html', output=output)
+    return '', 204
+
+@app.route('/get_output', methods=['GET'])
+def get_output_route():
+    return jsonify(get_output())
 
 # if __name__ == '__main__':
 #     app.run(debug=True)
