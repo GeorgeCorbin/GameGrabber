@@ -107,11 +107,11 @@ def run_script(script_name, input_text=None):
 
 
 def run_ESPN():
-    run_script("espnScrapper.py")
+    run_script("espn_data_retriever.py")
 
 
 def run_script2():
-    run_script("GeneralScrapper.py")
+    run_script("general_scrapper.py")
 
 
 def on_input_submit():
