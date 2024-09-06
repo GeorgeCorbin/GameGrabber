@@ -5,15 +5,8 @@ import pandas as pd
 import re
 from datetime import datetime
 
-# Define your proxy settings
-# proxies = {
-#     'http': 'http://proxy.server:3128',
-#     'https': 'http://proxy.server:3128'
-# }
-
 def fetch_all_sports():
     url = "https://sports.core.api.espn.com/v2/sports?limit=1000"
-    # response = requests.get(url, proxies=proxies)
     response = requests.get(url)
     response.raise_for_status()  # Ensure we notice bad responses
     return response.json()
@@ -184,7 +177,7 @@ if __name__ == '__main__':
             parsed_data = parse_events_data(events)
             export_to_csv(parsed_data, f'Extra_{sport_id}_{league_id}_events_data.csv')
 
-            # exit(f'\nYour files have been completed.')
+            # exit(f'\nYour files have been completed.')a
 
     except requests.RequestException as e:
         print(f"Failed to fetch data from ESPN API. Error: {e}")

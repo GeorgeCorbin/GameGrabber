@@ -8,8 +8,7 @@ import re
 all_dataframes = []
 
 WEBSITE = input(f'Paste the website to scrape: ')
-# WEBSITE = "https://mcla.us/schedule/2024-03?page=3"
-WEBSITE = "https://espn.com/pll/scoreboard"
+WEBSITE = "https://mcla.us/schedule/2024-03?page=3"
 EXPORT_NAME = input("Give the scraped data file name: ")
 EXPORT_NAME = "new"
 COLUMNS = input("Enter comma separated list of desired column headers: ")

@@ -1,11 +1,9 @@
 import os
-import sys
 import requests
 import pandas as pd
 import re
 from datetime import datetime
 from flask import Flask, render_template, request, jsonify, send_from_directory
-from threading import Thread
 from queue import Queue, Empty
 import time
 
